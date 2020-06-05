@@ -140,30 +140,37 @@ public class PlotCommand extends BaseCommand implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-
+		sender.sendMessage("command");
 		if (sender instanceof Player) {
+			sender.sendMessage("plugin lock down?");
 			if (plugin.isError()) {
 				sender.sendMessage(Colors.Rose + "[Towny Error] Locked in Safe mode!");
 				return false;
 			}
 			Player player = (Player) sender;
+			sender.sendMessage("world?");
 			try {
 				if (!TownyUniverse.getInstance().getDataSource().getWorld(player.getWorld().getName()).isUsingTowny()) {
 					TownyMessaging.sendErrorMsg(player, TownySettings.getLangString("msg_set_use_towny_off"));
 					return false;
 				}
 			} catch (NotRegisteredException e) {
+				player.sendMessage("World not registered");
 				// World not registered				
 			}
-
+			
 			if (args == null) {
+				sender.sendMessage("args == null");
 				for (String line : output)
 					player.sendMessage(line);
 			} else {
+				sender.sendMessage("args != null");
 				try {
+					sender.sendMessage("parse plot command");
 					return parsePlotCommand(player, args);
 				} catch (TownyException x) {
 					// No permisisons
+					player.sendMessage("No perms");
 					 x.getMessage();
 				}
 			}
@@ -229,9 +236,12 @@ public class PlotCommand extends BaseCommand implements CommandExecutor {
 	}
 
 	public boolean parsePlotCommand(Player player, String[] split) throws TownyException {
+		player.sendMessage("towny universe instance");
 		TownyUniverse townyUniverse = TownyUniverse.getInstance();
+		
 
 		if (split.length == 0 || split[0].equalsIgnoreCase("?")) {
+			player.sendMessage("length == 0 || == ?");
 			for (String line : output)
 				player.sendMessage(line);
 		} else {
@@ -239,6 +249,7 @@ public class PlotCommand extends BaseCommand implements CommandExecutor {
 			Resident resident;
 			String world;
 
+			player.sendMessage("resident & world");
 			try {
 				resident = townyUniverse.getDataSource().getResident(player.getName());
 				world = player.getWorld().getName();
@@ -248,18 +259,22 @@ public class PlotCommand extends BaseCommand implements CommandExecutor {
 				return true;
 			}
 
+			player.sendMessage("try command");
 			try {
 				if (split[0].equalsIgnoreCase("claim")) {
+					player.sendMessage("claim");
 
+					player.sendMessage("test permissions");
 					if (!townyUniverse.getPermissionSource().testPermission(player, PermissionNodes.TOWNY_COMMAND_PLOT_CLAIM.getNode()))
 						throw new TownyException(TownySettings.getLangString("msg_err_command_disable"));
-
+					player.sendMessage("war time?");
 					if (TownyAPI.getInstance().isWarTime())
 						throw new TownyException(TownySettings.getLangString("msg_war_cannot_do"));
-
+					player.sendMessage("get selection");
 					List<WorldCoord> selection = AreaSelectionUtil.selectWorldCoordArea(resident, new WorldCoord(world, Coord.parseCoord(player)), StringMgmt.remFirstArg(split));
 					// selection = TownyUtil.filterUnownedPlots(selection);
 
+					player.sendMessage("selection size?");
 					if (selection.size() > 0) {
 
 						double cost = 0;
@@ -793,6 +808,7 @@ public class PlotCommand extends BaseCommand implements CommandExecutor {
 					throw new TownyException(String.format(TownySettings.getLangString("msg_err_invalid_property"), split[0]));
 
 			} catch (TownyException | EconomyException x) {
+				player.sendMessage("try failed");
 				TownyMessaging.sendErrorMsg(player, x.getMessage());
 			}
 		}
